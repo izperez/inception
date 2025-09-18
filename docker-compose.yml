@@ -1,0 +1,26 @@
+#version: "3.8"
+
+services:
+  nginx:
+    build: requirements/nginx/.
+    container_name: nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./web:/var/www/html
+  wordpress:
+    build: requirements/wordpress/.
+    container_name: wp-php
+    volumes:
+      - ./web:/var/www/html
+    expose:
+      - 9000
+  mariadb:
+    build: requirements/mariadb/.
+    container_name: mariadb
+    # voulumes:
+    #  - ./database:/var/lib/mysql
+  #   networks:
+  #     - inception:
+  # networks:
+  #   inception:
