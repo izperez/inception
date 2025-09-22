@@ -8,6 +8,9 @@ services:
       - "8080:80"
     volumes:
       - ./web:/var/www/html
+    secrets:
+      - ssl-cert
+      - ssl-key
   wordpress:
     build: requirements/wordpress/.
     container_name: wp-php
@@ -20,3 +23,8 @@ services:
     container_name: mariadb
     volumes:
      -  ./database:/var/lib/mysql
+  secrets:
+    ssl-cert:
+      file: ../secrets/self-signed.crt
+    ssl-key:
+      file: ../secrets/self-signed.key
