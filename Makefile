@@ -1,19 +1,58 @@
-DOCKER_COMPOSE := docker-compose.yml
+DOCKER_COMPOSE	= srcs/docker-compose.yml
 
-SECRETS_DIR := secrets
+SECRETS_DIR	= secrets/
 
-SSL_CERT := $(SECRETS_DIR)/self-signed.crt
+SSL_CERT	= $(SECRETS_DIR)self-signed.crt
 
-all: $(SSL_CERT) build up
+DATA_DIR	= /home/izperez/data
+DATABASE	= $(DATA_DIR)/database
+SITE		= $(DATA_DIR)/web
+ENV			= srcs/.env
 
-$(SSL_CERT):
-	sudo openssl req -x500  -nodes -days 365 -newkey rsa:2048 -keyout $(SECRETS_DIR)/self-signed.key -out $(SSL_CERT) -subj "/C=ES/ST=Bizkaia/L=Urduliz/O=42Urduliz/CN=localhost"
+SECRETS_LIST_PRE = db-user db-password wp-admin-user wp-admin-password wp-user-password
+SECRETS_LIST = $(addprefix $(SECRETS_DIR), $(SECRETS_LIST_PRE))
 
-build:
+all: build
+
+
+$(SECRETS_DIR):
+	mkdir -p $(SECRETS_DIR)
+
+$(ENV):
+	touch $(ENV)
+	echo 'DOMAIN_NAME: "izperez.42.fr"' >> $(ENV)
+	echo 'WP_USERNAME: "user"' >> $(ENV) 
+
+$(SECRETS_LIST):
+	touch $(SECRETS_LIST)
+
+
+$(SSL_CERT): $(SECRETS_DIR)
+	sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $(SECRETS_DIR)self-signed.key -out $(SSL_CERT) -subj "/C=ES/ST=Bizkaia/L=Urduliz/O=42Urduliz/CN=izperez.42.fr"
+
+build: $(ENV) $(SSL_CERT) $(SECRETS_LIST) $(DATABASE) $(SITE)
 	sudo docker compose -f $(DOCKER_COMPOSE) build
+
+$(DATABASE): $(DATA_DIR)
+	mkdir -p $@
+
+$(SITE): $(DATA_DIR)
+	mkdir -p $@
+
+$(DATA_DIR):
+	mkdir -p $@
 
 up:
 	sudo docker compose -f $(DOCKER_COMPOSE) up -d
 
-down:
+down: 
 	sudo docker compose -f $(DOCKER_COMPOSE) down
+
+clean: down
+	sudo docker volume prune
+	sudo rm -rf $(DATA_DIR)/*
+
+fclean: clean
+	rm -rf $(SECRETS_DIR) $(ENV)
+
+re: clean all
