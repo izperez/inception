@@ -8,6 +8,5 @@ COPY init.sql /etc/mysql/init.sql
 COPY script.sh .
 
 RUN mkdir /run/mysqld && chmod +x script.sh
-#&& chown mysql:mysql /run/mysqld
 
 CMD ["./script.sh"]
